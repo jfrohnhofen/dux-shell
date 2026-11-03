@@ -71,7 +71,7 @@ Singleton {
     }
 
     function updateSingleDevice(device) {
-        if (device.class === "leds") {
+        if (device.class === "leds" && device.id !== "leds:tpacpi::kbd_backlight" && device.id !== "leds:tpacpi::lid_logo_dot") {
             return;
         }
 

@@ -137,7 +137,7 @@ BasePill {
             return Theme.primary;
         if (NetworkService.isConnecting && !NetworkService.ethernetConnected)
             return Theme.primary;
-        return NetworkService.networkStatus !== "disconnected" ? Theme.primary : Theme.surfaceText;
+        return NetworkService.networkStatus !== "disconnected" ? Theme.widgetIconColor : Theme.surfaceText;
     }
 
     function getIconBlinking(id) {
@@ -280,8 +280,6 @@ BasePill {
             return Theme.widgetIconColor;
         if (BatteryService.isLowBattery && !BatteryService.isCharging)
             return Theme.error;
-        if (BatteryService.isCharging || BatteryService.isPluggedIn)
-            return Theme.primary;
         return Theme.widgetIconColor;
     }
 

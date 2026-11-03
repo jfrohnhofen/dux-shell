@@ -24,6 +24,12 @@ repos:
         types: [shell]
   - repo: local
     hooks:
+      - id: gofmt
+        name: gofmt (check)
+        entry: bash -c 'files=$(gofmt -l core); if [ -n "$files" ]; then echo "Unformatted Go files:"; echo "$files"; exit 1; fi'
+        language: system
+        files: ^core/.*\.go$
+        pass_filenames: false
       - id: go-mod-tidy
         name: go mod tidy
         entry: bash -c 'cd core && go mod tidy'

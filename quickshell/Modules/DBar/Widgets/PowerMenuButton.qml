@@ -17,7 +17,7 @@ BasePill {
                 id: icon
                 anchors.centerIn: parent
                 name: "power_settings_new"
-                size: Theme.barIconSize(root.barThickness, undefined, root.barConfig?.maximizeWidgetIcons, root.barConfig?.iconScale)
+                size: 16
                 color: Theme.widgetIconColor
             }
         }

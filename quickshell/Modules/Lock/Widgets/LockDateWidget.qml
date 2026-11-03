@@ -33,7 +33,7 @@ Item {
                 return systemClock.date.toLocaleDateString(I18n.locale(), SettingsData.lockDateFormat);
             return systemClock.date.toLocaleDateString(I18n.locale(), (root.cfg.format ?? "long") === "short" ? "ddd, d MMM" : Locale.LongFormat);
         }
-        font.pixelSize: Theme.fontSizeXLarge
+        font.pixelSize: Theme.fontSizeXLarge * 1.5
         font.family: root.fontFamily !== "" ? root.fontFamily : resolvedFontFamily
         color: root.contentColor
     }

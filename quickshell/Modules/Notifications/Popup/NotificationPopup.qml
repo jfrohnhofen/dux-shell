@@ -711,7 +711,7 @@ PanelWindow {
                         showClose: true
                         revealControls: win.hovered || win.contextMenuActive
                         contentOpacity: swipe.contentOpacity
-                        dismissText: I18n.tr("Clear")
+                        showDismiss: false // the hover close button already covers this
                         animateHeight: false
                         outerRadius: win.connectedFrameMode ? Theme.connectedSurfaceRadius : NotificationMetrics.popupRadius
                         color: "transparent"

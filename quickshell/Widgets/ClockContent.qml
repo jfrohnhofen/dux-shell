@@ -20,17 +20,28 @@ Item {
     property var locale: I18n.locale()
     property date date: systemClock.date
 
-    readonly property string timeText: date.toLocaleTimeString(locale, SettingsData.getEffectiveTimeFormat())
+    readonly property string timeText: {
+        const raw = date.toLocaleTimeString(locale, SettingsData.getEffectiveTimeFormat());
+        return raw.replace(/(am|pm)/gi, m => m.toLowerCase());
+    }
     readonly property string dateText: date.toLocaleDateString(locale, SettingsData.getEffectiveDateFormat())
     readonly property var timeLines: vertical ? stackedTime() : [timeText]
     readonly property var dateLines: vertical ? stackedDate() : [dateText]
     readonly property bool showTime: displayMode !== "date"
     readonly property bool showDate: displayMode !== "time"
     readonly property bool split: segmented && !vertical && showTime && showDate
+    // NumericText reserves width for its widest digits; push that slack to the outer edges so the gaps around the separator match.
+    readonly property bool timeLeads: showTime && !(dateFirst && showDate)
     readonly property real splitOffset: split ? layout.x + separator.x + separator.width / 2 : 0
 
     implicitWidth: vertical ? availableWidth : layout.implicitWidth
     implicitHeight: layout.implicitHeight
+
+    function sideAlignment(leading) {
+        if (vertical || !(showTime && showDate))
+            return Text.AlignHCenter;
+        return leading ? Text.AlignRight : Text.AlignLeft;
+    }
 
     function pad(value) {
         return String(value).padStart(2, "0");
@@ -42,7 +53,7 @@ Item {
         if (SettingsData.showSeconds)
             lines.push(pad(date.getSeconds()));
         if (!SettingsData.use24HourClock && SettingsData.showAmPm)
-            lines.push(hours >= 12 ? locale.pmText : locale.amText);
+            lines.push((hours >= 12 ? locale.pmText : locale.amText).toLowerCase());
         return lines;
     }
 
@@ -58,6 +69,7 @@ Item {
 
         property var lines: []
         property color color: root.textColor
+        property int alignment: Text.AlignHCenter
 
         width: root.vertical ? root.availableWidth : implicitWidth
 
@@ -69,7 +81,9 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: stack.lines[index]
                 color: stack.color
+                horizontalAlignment: stack.alignment
                 font.pixelSize: root.fontSize
+                font.weight: Theme.shiftedFontWeight(Font.DemiBold)
             }
         }
     }
@@ -89,7 +103,7 @@ Item {
         Item {
             id: separator
             visible: root.showTime && root.showDate
-            width: root.vertical ? root.availableWidth : (root.split ? Theme.groupedListGap : dot.implicitWidth)
+            width: root.vertical ? root.availableWidth : (root.split ? Theme.groupedListGap : 10)
             height: root.vertical ? Theme.spacingM : root.fontSize
 
             Rectangle {
@@ -100,13 +114,14 @@ Item {
                 color: root.separatorColor
             }
 
-            StyledText {
+            Rectangle {
                 id: dot
                 visible: !root.vertical && !root.split
                 anchors.centerIn: parent
-                text: "•"
-                color: root.separatorColor
-                font.pixelSize: Theme.fontSizeSmall
+                width: 4
+                height: 4
+                radius: 2
+                color: root.textColor
             }
         }
 
@@ -122,6 +137,7 @@ Item {
 
         StackedLines {
             lines: root.timeLines
+            alignment: root.sideAlignment(root.timeLeads)
         }
     }
 
@@ -131,6 +147,7 @@ Item {
         StackedLines {
             lines: root.dateLines
             color: root.dateColor
+            alignment: root.sideAlignment(!root.timeLeads)
         }
     }
 

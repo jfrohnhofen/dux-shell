@@ -68,6 +68,70 @@ Singleton {
     property bool isSessionLockSecure: false
     property bool lockPowerOffRequested: false
     property bool sleepBlocked: false
+    property int savedKbdBrightness: -1
+    property int savedLidLogoBrightness: -1
+
+    IdleMonitor {
+        id: kbdBacklightMonitor
+        timeout: 30
+        respectInhibitors: false
+        enabled: true
+        onIsIdleChanged: {
+            if (isIdle) {
+                root._turnOffKeyboardBacklight();
+            } else {
+                if (!root.monitorsOff) {
+                    root._restoreKeyboardBacklight();
+                }
+            }
+        }
+    }
+
+    function _turnOffKeyboardBacklight() {
+        if (!BrightnessService.brightnessAvailable) return;
+        const current = (BrightnessService.deviceBrightness && ("leds:tpacpi::kbd_backlight" in BrightnessService.deviceBrightness))
+            ? BrightnessService.deviceBrightness["leds:tpacpi::kbd_backlight"]
+            : 0;
+        if (current > 0) {
+            savedKbdBrightness = current;
+            BrightnessService.setBrightness(0, "leds:tpacpi::kbd_backlight", true);
+        } else if (savedKbdBrightness > 0) {
+            BrightnessService.setBrightness(0, "leds:tpacpi::kbd_backlight", true);
+        }
+    }
+
+    function _restoreKeyboardBacklight() {
+        if (!BrightnessService.brightnessAvailable) return;
+        if (savedKbdBrightness > 0) {
+            BrightnessService.setBrightness(savedKbdBrightness, "leds:tpacpi::kbd_backlight", true);
+            savedKbdBrightness = -1;
+        }
+    }
+
+    function _turnOffAllLeds() {
+        _turnOffKeyboardBacklight();
+        if (!BrightnessService.brightnessAvailable) return;
+        const currentLid = (BrightnessService.deviceBrightness && ("leds:tpacpi::lid_logo_dot" in BrightnessService.deviceBrightness))
+            ? BrightnessService.deviceBrightness["leds:tpacpi::lid_logo_dot"]
+            : 0;
+        if (currentLid > 0) {
+            savedLidLogoBrightness = currentLid;
+            BrightnessService.setBrightness(0, "leds:tpacpi::lid_logo_dot", true);
+        } else if (savedLidLogoBrightness > 0) {
+            BrightnessService.setBrightness(0, "leds:tpacpi::lid_logo_dot", true);
+        }
+    }
+
+    function _restoreAllLeds() {
+        const isKbdIdle = kbdBacklightMonitor ? kbdBacklightMonitor.isIdle : false;
+        if (!isKbdIdle) {
+            _restoreKeyboardBacklight();
+        }
+        if (savedLidLogoBrightness > 0) {
+            BrightnessService.setBrightness(savedLidLogoBrightness, "leds:tpacpi::lid_logo_dot", true);
+            savedLidLogoBrightness = -1;
+        }
+    }
 
     function _updateSleepBlocked(blockInhibited) {
         if (typeof blockInhibited === "string")
@@ -197,14 +261,17 @@ Singleton {
         function onRequestMonitorOff() {
             monitorsOff = true;
             CompositorService.powerOffMonitors();
+            root._turnOffAllLeds();
         }
 
         function onRequestMonitorOn() {
             monitorsOff = false;
             CompositorService.powerOnMonitors();
+            root._restoreAllLeds();
         }
 
         function onRequestSuspend() {
+            root._turnOffAllLeds();
             SessionService.suspendWithBehavior(root.suspendBehavior);
         }
     }

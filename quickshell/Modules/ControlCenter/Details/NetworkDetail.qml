@@ -181,6 +181,19 @@ Item {
                 }
             },
             {
+                "label": I18n.tr("Edit Connection"),
+                "iconName": "edit",
+                "visible": showSavedOptions,
+                "action": () => {
+                    PopoutService.closeControlCenter();
+                    Quickshell.execDetached([
+                        "bash",
+                        "-c",
+                        "nm-connection-editor --edit=$(nmcli -g connection.uuid connection show '" + ssid + "')"
+                    ]);
+                }
+            },
+            {
                 "label": network.autoconnect ? I18n.tr("Disable autoconnect") : I18n.tr("Enable autoconnect"),
                 "iconName": "autorenew",
                 "visible": showSavedOptions && DMSService.apiVersion > 13,
@@ -220,6 +233,15 @@ Item {
                 "action": () => {
                     networkWiredInfoModalLoader.active = true;
                     networkWiredInfoModalLoader.item.showNetworkInfo(connection.id, NetworkService.getWiredNetworkInfo(connection.uuid));
+                }
+            },
+            {
+                "label": I18n.tr("Edit Connection"),
+                "iconName": "edit",
+                "visible": !!connection.uuid,
+                "action": () => {
+                    PopoutService.closeControlCenter();
+                    Quickshell.execDetached(["nm-connection-editor", "-e", connection.uuid]);
                 }
             }
         ];

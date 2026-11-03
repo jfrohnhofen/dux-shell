@@ -39,7 +39,7 @@
             major = "1";
             minor = "25";
           };
-      goForPkgs = pkgs: pkgs.${"go_${goModVersion.major}_${goModVersion.minor}"};
+      goForPkgs = pkgs: pkgs.${"go_${goModVersion.major}_${goModVersion.minor}"} or pkgs.go;
       forEachSystem =
         fn:
         nixpkgs.lib.genAttrs [ "aarch64-darwin" "aarch64-linux" "x86_64-darwin" "x86_64-linux" ] (
