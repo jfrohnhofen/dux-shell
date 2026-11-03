@@ -34,7 +34,7 @@ Card {
 
     function weekStartQt() {
         if (SettingsData.firstDayOfWeek >= 7 || SettingsData.firstDayOfWeek < 0)
-            return Qt.locale().firstDayOfWeek;
+            return 1;
         return SettingsData.firstDayOfWeek;
     }
 

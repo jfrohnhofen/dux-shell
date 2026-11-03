@@ -6,8 +6,8 @@ import qs.Modules.Settings.DesktopWidgetSettings
 DesktopWidgetInstanceSettings {
     id: root
 
-    readonly property var styles: ["pill", "expressive", "ring", "minimal", "dots"]
-    readonly property var styleLabels: [I18n.tr("Pill", "lock screen password field style"), I18n.tr("Expressive"), I18n.tr("Ring"), I18n.tr("Minimal", "lock screen password field style"), I18n.tr("Dots", "lock screen password field style")]
+    readonly property var styles: ["pill", "classic", "expressive", "ring", "minimal", "dots"]
+    readonly property var styleLabels: [I18n.tr("Pill", "lock screen password field style"), "Classic", I18n.tr("Expressive"), I18n.tr("Ring"), I18n.tr("Minimal", "lock screen password field style"), I18n.tr("Dots", "lock screen password field style")]
     readonly property var visibilityModes: ["always", "typing", "never"]
     readonly property var visibilityLabels: [I18n.tr("Always show", "lock screen widget visibility"), I18n.tr("Hide until typing", "lock screen widget visibility"), I18n.tr("Never")]
     readonly property string profileVisibility: cfg.profileVisibility ?? (cfg.showProfileImage === false ? "never" : "always")

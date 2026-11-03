@@ -192,10 +192,6 @@ BasePill {
                             return Theme.error;
                         }
 
-                        if (BatteryService.isCharging || BatteryService.isPluggedIn) {
-                            return Theme.primary;
-                        }
-
                         return Theme.widgetIconColor;
                     }
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -248,10 +244,6 @@ BasePill {
 
                         if (BatteryService.isLowBattery && !BatteryService.isCharging) {
                             return Theme.error;
-                        }
-
-                        if (BatteryService.isCharging || BatteryService.isPluggedIn) {
-                            return Theme.primary;
                         }
 
                         return Theme.widgetIconColor;

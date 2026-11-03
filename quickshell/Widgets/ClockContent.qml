@@ -20,7 +20,10 @@ Item {
     property var locale: I18n.locale()
     property date date: systemClock.date
 
-    readonly property string timeText: date.toLocaleTimeString(locale, SettingsData.getEffectiveTimeFormat())
+    readonly property string timeText: {
+        const raw = date.toLocaleTimeString(locale, SettingsData.getEffectiveTimeFormat());
+        return raw.replace(/(am|pm)/gi, m => m.toLowerCase());
+    }
     readonly property string dateText: date.toLocaleDateString(locale, SettingsData.getEffectiveDateFormat())
     readonly property var timeLines: vertical ? stackedTime() : [timeText]
     readonly property var dateLines: vertical ? stackedDate() : [dateText]
@@ -42,7 +45,7 @@ Item {
         if (SettingsData.showSeconds)
             lines.push(pad(date.getSeconds()));
         if (!SettingsData.use24HourClock && SettingsData.showAmPm)
-            lines.push(hours >= 12 ? locale.pmText : locale.amText);
+            lines.push((hours >= 12 ? locale.pmText : locale.amText).toLowerCase());
         return lines;
     }
 
@@ -70,6 +73,7 @@ Item {
                 text: stack.lines[index]
                 color: stack.color
                 font.pixelSize: root.fontSize
+                font.weight: Theme.shiftedFontWeight(Font.DemiBold)
             }
         }
     }
@@ -89,7 +93,7 @@ Item {
         Item {
             id: separator
             visible: root.showTime && root.showDate
-            width: root.vertical ? root.availableWidth : (root.split ? Theme.groupedListGap : dot.implicitWidth)
+            width: root.vertical ? root.availableWidth : (root.split ? Theme.groupedListGap : 10)
             height: root.vertical ? Theme.spacingM : root.fontSize
 
             Rectangle {
@@ -100,13 +104,14 @@ Item {
                 color: root.separatorColor
             }
 
-            StyledText {
+            Rectangle {
                 id: dot
                 visible: !root.vertical && !root.split
                 anchors.centerIn: parent
-                text: "•"
-                color: root.separatorColor
-                font.pixelSize: Theme.fontSizeSmall
+                width: 4
+                height: 4
+                radius: 2
+                color: root.textColor
             }
         }
 

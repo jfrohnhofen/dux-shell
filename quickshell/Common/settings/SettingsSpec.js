@@ -4,7 +4,52 @@
 .import "DockConfig.js" as DockConfig
 
 function lockWidgetDefaults() {
-    return Shared.lockWidgetDefaults();
+    const common = {
+        displayPreferences: ["all"],
+        syncPositionAcrossScreens: true
+    };
+    const entry = (id, widgetType, enabled, config) => ({
+        id: id,
+        widgetType: widgetType,
+        enabled: enabled,
+        config: Object.assign({}, common, config)
+    });
+    const tint = {
+        colorMode: "default",
+        customColor: "#ffffff"
+    };
+    return [
+        entry("lock_clock", "desktopClock", true, Object.assign({
+            style: "digital",
+            transparency: 0,
+            weight: 600,
+            twoTone: false,
+            showDate: false,
+            showDigitalSeconds: false,
+            showAnalogNumbers: false,
+            showAnalogSeconds: false,
+            autoPosition: false
+        }, tint)),
+        entry("lock_date", "lockDate", true, Object.assign({
+            format: "long"
+        }, tint)),
+        entry("lock_auth", "lockAuth", true, {
+            style: "pill",
+            profileVisibility: "never",
+            passwordVisibility: "always"
+        }),
+        entry("lock_notifications", "lockNotifications", false, {
+            mode: 0
+        }),
+        entry("lock_status", "lockStatus", false, {
+            showMediaPlayer: false,
+            showWeather: false,
+            background: false
+        }),
+        entry("lock_power", "lockPower", false, {
+            shape: "round"
+        })
+    ];
 }
 
 function greeterWidgetsFromLock(lockInstances, previous) {

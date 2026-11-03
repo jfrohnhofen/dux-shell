@@ -525,6 +525,7 @@ Singleton {
     }
 
     function getCoreApps(query) {
+        return [];
         if (!query || query.length === 0)
             return coreApps;
         const lowerQuery = query.toLowerCase();

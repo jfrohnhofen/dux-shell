@@ -25,7 +25,10 @@ Item {
     readonly property bool showProfileImage: profileVisibility === "always" || (profileVisibility === "typing" && authVisible)
     readonly property bool showPasswordField: passwordVisibility === "always" || authVisible
     readonly property string style: cfg.style ?? "expressive"
-    readonly property bool contained: style === "pill" || style === "expressive"
+    // "classic": the pre-2.0 custom field (380x60, small corners, translucent white, no outline)
+    readonly property bool classic: style === "classic"
+    readonly property color classicMutedColor: Qt.rgba(1, 1, 1, 0.6)
+    readonly property bool contained: style === "pill" || style === "expressive" || classic
     readonly property bool dots: style === "dots"
     readonly property bool ring: style === "ring"
     readonly property bool morph: style === "expressive"
@@ -64,7 +67,7 @@ Item {
     readonly property string pamState: lockHost?.pamState ?? ""
     readonly property string passwordBuffer: lockHost?.passwordBuffer ?? ""
 
-    implicitWidth: ring ? ringSize : Math.min(LockMetrics.passwordRowWidth, (lockHost?.width ?? LockMetrics.passwordRowWidth) - Theme.spacingXL * 2)
+    implicitWidth: ring ? ringSize : classic ? 380 : Math.min(LockMetrics.passwordRowWidth, (lockHost?.width ?? LockMetrics.passwordRowWidth) - Theme.spacingXL * 2)
     implicitHeight: passwordLayout.implicitHeight
     // Feedback and the caps lock warning hang below the box so centring the box centres the field.
     readonly property real bottomOverflow: Theme.spacingS + Math.max(capsLockRow.implicitHeight, authFeedbackText.height)
@@ -361,15 +364,17 @@ Item {
                 }
 
                 Layout.fillWidth: true
-                Layout.preferredHeight: root.ring ? 0 : LockMetrics.fieldHeight
-                radius: root.style === "expressive" ? Theme.cornerRadiusXL : Theme.fullRadius(width, height)
+                Layout.preferredHeight: root.ring ? 0 : (root.classic ? 60 : LockMetrics.fieldHeight)
+                radius: root.classic ? Theme.cornerRadius : (root.style === "expressive" ? Theme.cornerRadiusXL : Theme.fullRadius(width, height))
                 color: {
                     if (!root.contained)
                         return "transparent";
+                    if (root.classic)
+                        return Qt.rgba(1, 1, 1, 0.2);
                     return root.style === "expressive" ? Theme.surfaceContainerHigh : Theme.cardSurface;
                 }
                 border.width: {
-                    if (!root.contained)
+                    if (!root.contained || root.classic)
                         return 0;
                     return focusRingShown ? Math.max(Theme.outlineWidth, Theme.focusRingWidth) : Theme.layerOutlineWidth;
                 }
@@ -536,6 +541,8 @@ Item {
                                 return Theme.error;
                             if (root.pam && root.pam.u2fState !== "")
                                 return Theme.tertiary;
+                            if (root.classic)
+                                return Theme.surfaceText;
                             if (passwordField.activeFocus)
                                 return root.accentColor;
                             return root.contained ? Theme.surfaceVariantText : Theme.withAlpha(root.plainColor, Theme.pendingOpacity);
@@ -864,8 +871,12 @@ Item {
                         return I18n.tr("Password", "lock screen password field placeholder") + "…";
                     }
                     color: {
+                        if (root.classic)
+                            return Theme.surfaceText;
                         if (root.unlocking || (root.pam?.authBusy ?? false))
                             return root.accentColor;
+                        if (root.classic)
+                            return Theme.surfaceText;
                         return root.contained ? Theme.outline : Theme.withAlpha(root.plainColor, Theme.pendingOpacity);
                     }
                     font.pixelSize: Theme.fontSizeMedium
@@ -975,6 +986,11 @@ Item {
                     DTextCursor {
                         id: passwordCursor
 
+                        Binding on color {
+                            when: root.classic
+                            value: Theme.surfaceText
+                        }
+
                         x: passwordDisplay.x + passwordDisplay.cursorRectangle.x
                         y: passwordDisplay.y + passwordDisplay.cursorRectangle.y
                         height: passwordDisplay.cursorRectangle.height
@@ -1003,6 +1019,10 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     iconName: parent.showPassword ? "visibility_off" : "visibility"
                     buttonSize: Theme.buttonHeightXS
+                    Binding on iconColor {
+                        when: root.classic
+                        value: Theme.surfaceText
+                    }
                     visible: !root.demoMode && !root.ring && !root.minimal && root.passwordBuffer.length > 0 && !(root.pam?.authBusy ?? false) && !root.unlocking
                     enabled: visible
                     onClicked: parent.showPassword = !parent.showPassword
@@ -1040,7 +1060,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     iconName: "keyboard"
                     buttonSize: Theme.buttonHeightXS
-                    visible: !root.demoMode && !root.ring && !root.minimal && !(root.pam?.authBusy ?? false) && !root.unlocking && !(root.pam?.u2fPending ?? false)
+                    visible: !root.classic && !root.demoMode && !root.ring && !root.minimal && !(root.pam?.authBusy ?? false) && !root.unlocking && !(root.pam?.u2fPending ?? false)
                     enabled: visible && root.showPasswordField
                     onClicked: {
                         if (keyboardController.isKeyboardActive)
@@ -1058,7 +1078,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     width: Theme.iconSize
                     height: Theme.iconSize
-                    visible: !root.demoMode && !root.ring && !root.morph && ((root.pam?.authBusy ?? false) || root.unlocking)
+                    visible: !root.classic && !root.demoMode && !root.ring && !root.morph && ((root.pam?.authBusy ?? false) || root.unlocking)
 
                     DIcon {
                         anchors.centerIn: parent
@@ -1139,7 +1159,7 @@ Item {
             width: parent.width
             height: text.length > 0 ? Math.min(implicitHeight, Math.ceil(Theme.fontSizeSmall * 4.5)) : 0
             text: root.currentAuthFeedbackText()
-            color: root.authFeedbackIsHint() ? Theme.outline : Theme.error
+            color: root.classic ? root.classicMutedColor : (root.authFeedbackIsHint() ? Theme.outline : Theme.error)
             font.pixelSize: Theme.fontSizeSmall
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
@@ -1165,14 +1185,14 @@ Item {
             DIcon {
                 name: "shift_lock"
                 size: Theme.iconSizeSmall
-                color: Theme.error
+                color: root.classic ? root.classicMutedColor : Theme.error
                 anchors.verticalCenter: parent.verticalCenter
             }
 
             StyledText {
                 text: I18n.tr("Caps Lock is on")
                 font.pixelSize: Theme.fontSizeSmall
-                color: Theme.error
+                color: root.classic ? root.classicMutedColor : Theme.error
                 anchors.verticalCenter: parent.verticalCenter
             }
 

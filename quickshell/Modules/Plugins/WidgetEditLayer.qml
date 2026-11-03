@@ -178,6 +178,13 @@ FocusScope {
         return null;
     }
 
+    // Classic centred layout: clock digits end 150px above the screen centre,
+    // date sits just above the clock, password field starts 50px below the centre.
+    function lockClockTop() {
+        // 185px clock box with a ~145px single text line centred in it (~20px inset).
+        return Math.round(height / 2 - 150 - 165);
+    }
+
     function stockRect(widgetType, item) {
         if (!lockScreen)
             return null;
@@ -186,17 +193,17 @@ FocusScope {
         case "desktopClock":
             return item.automaticPlacement && autoPositions[item.instanceId] ? autoPositions[item.instanceId] : {
                 x: Math.max(0, centerX),
-                y: edgeInset
+                y: Math.max(edgeInset, lockClockTop())
             };
         case "lockDate":
             return {
-                x: edgeInset,
-                y: edgeInset
+                x: Math.max(0, centerX),
+                y: Math.max(edgeInset, lockClockTop() - item.height)
             };
         case "lockAuth":
             return {
                 x: centerX,
-                y: height / 2 - item.height / 2
+                y: Math.round(height / 2 + 50)
             };
         case "lockNotifications":
             {
